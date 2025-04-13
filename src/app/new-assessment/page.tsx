@@ -306,18 +306,18 @@ export default function NewAssessment() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        // 'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({ trace: traceData, template: templateData, age: age }),
     });
     
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error('Failed to upload image' + errorText);
+      throw new Error('Failed to submit assessment' + errorText);
     }
 
     const result = await response.json();
-    console.log('Image uploaded successfully:', result);
+    console.log('Assessment successfully submitted:', result);
   };
 
   const exportBothCanvases = async () => {
@@ -328,7 +328,7 @@ export default function NewAssessment() {
     
     const templateImageURL = templateCanvas.toDataURL("image/png");
     const drawingsImageURL = drawingsCanvas.toDataURL("image/png");
-    const age = 0;
+    const age = 70;
     
     // Upload images to the server
     await uploadImageToServer(drawingsImageURL, templateImageURL, age);
