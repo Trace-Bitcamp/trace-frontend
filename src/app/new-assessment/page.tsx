@@ -366,9 +366,9 @@ export default function NewAssessment() {
   }
 
   return (
-    <div className="px-10 py-10">
+    <div className="px-10 bg-purple-100 py-10">
       <div className="mb-6">
-        <Link href="/dashboard" className="flex items-center text-sm text-muted-foreground hover:text-foreground">
+        <Link href="/dashboard" className="flex items-center text-sm text-purple-700/80 hover:text-purple-900">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </Link>

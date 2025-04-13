@@ -55,7 +55,7 @@ export default function BackgroundPaths({
   const words = title.split(" ")
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-white dark:bg-neutral-950">
+    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-from-bl bg-gradient-to-tr from-purple-800 via-purple-700 to-purple-500">
       <div className="absolute inset-0">
         <FloatingPaths position={1} />
         <FloatingPaths position={-1} />
@@ -68,15 +68,15 @@ export default function BackgroundPaths({
           transition={{ duration: 2 }}
           className="max-w-4xl mx-auto"
         >
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-neutral-950 to-neutral-800/80 dark:from-white dark:to-white/80">trace</h1>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl mb-8 text-transparent bg-clip-text bg-gradient-to-r from-neutral-950 to-neutral-800/80 dark:from-white font-serif tracking-tighter italic font-light dark:to-white/80">Trace.</h1>
 
           <div
             className="inline-block group relative bg-gradient-to-b from-black/10 to-white/10 
                         dark:from-white/10 dark:to-black/10 p-px rounded-2xl backdrop-blur-lg 
                         overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"
           >
-            <Link href="/dashboard" className={buttonVariants({ variant: "ghost" }) + " rounded-[1.15rem] px-8 py-6 text-lg font-semibold backdrop-blur-md bg-white/95 hover:bg-white/100 dark:bg-black/95 dark:hover:bg-black/100 text-black dark:text-white transition-all duration-300 group-hover:-translate-y-0.5 border border-black/10 dark:border-white/10 hover:shadow-md dark:hover:shadow-neutral-800/50"}>
-                <span className="opacity-90 font-bold group-hover:opacity-100 transition-opacity">Start treatment</span>
+            <Link href="/dashboard" className={buttonVariants({ variant: "ghost" }) + " rounded-[1.15rem] px-8 py-6 text-lg font-semibold backdrop-blur-md bg-white/95 hover:bg-white/60 dark:bg-black/60  text-black dark:text-white transition-all duration-300 group-hover:-translate-y-0.5 border border-black/10 dark:border-white/10 hover:shadow-md dark:hover:shadow-neutral-800/50"}>
+                <span className=" opacity-90 font-bold group-hover:opacity-100 transition-opacity">Start treatment</span>
                 <span
                   className="ml-3 font-bold opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5 
                                   transition-all duration-300"

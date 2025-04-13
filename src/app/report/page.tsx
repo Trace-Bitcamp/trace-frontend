@@ -1,7 +1,8 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import Markdown from "react-markdown"
+import { useSearchParams } from "next/navigation"
 
 const markdownContent = `
 # Report Title
@@ -27,10 +28,45 @@ console.log("Hello, World!");
 **Thank you for reading!**
 `
 
+const fetchGemOut = async (id: string) => {
+  const response = await fetch(`/gemini_report/${id}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch gemini report')
+  }
+  return response.text() // Assuming the response is text containing markdown
+}
+
 export default function ReportPage() {
+  const [markdown, setMarkdown] = useState<string>("")
+  const [loading, setLoading] = useState<boolean>(true)
+
+  const searchParams = useSearchParams()
+  const patientId = searchParams.get('patientId')
+
+  useEffect(() => {
+    const loadGeminiOutput = async () => {
+      if (patientId) {
+        try {
+          const output = await fetchGemOut(patientId)
+          setMarkdown(output)
+        } catch (error) {
+          console.error('Error fetching gemini output:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadGeminiOutput()
+  }, [patientId])
+
+  if (loading) {
+    return <div className="container mx-auto py-10">Loading...</div>
+  }
+
   return (
     <div className="container prose mx-auto py-10">
-        <Markdown>{markdownContent}</Markdown> 
+      <Markdown>{markdown}</Markdown>
     </div>
   )
 }

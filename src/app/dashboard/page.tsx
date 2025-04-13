@@ -55,11 +55,11 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 w-full z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 w-full z-10 border-b bg-background/10 backdrop-blur supports-[backdrop-filter]:bg-background/10 bg-opacity-10  drop-shadow-lg">
         <div className="w-full px-10 flex h-16 items-center justify-between py-4">
           <div className="flex items-center gap-2">
             {/* <Activity className="h-6 w-6 text-emerald-500" /> */}
-            <span className="text-xl font-bold">trace</span>
+            <span className="text-2xl font-serif tracking-tighter italic font-light text-purple-700">Trace.</span>
           </div>
           <nav className="flex items-center gap-6">
             <Link href="/" className="text-sm font-medium">
@@ -72,14 +72,14 @@ export default function Home() {
               New Assessment
             </Link>
           </nav>
-          <Button variant="outline">Sign Out</Button>
+          <Button className="bg-gradient-to-t from-purple-800 to-purple-600 text-purple-100">Sign Out</Button>
         </div>
       </header>
-      <main className="flex-1">
+      <main className="flex-1 bg-gradient-to-tl from-purple-200 to-purple-100">
         <section className="px-10 py-10">
           <div className="grid gap-6">
             <div className="flex flex-col gap-2">
-              <h1 className="text-3xl font-bold tracking-tight">Welcome back, Dr. Johnson</h1>
+              <h1 className="text-3xl font-bold text-purple-800 tracking-tight">Welcome back, Dr. Johnson</h1>
               <p className="text-muted-foreground">
                 Monitor your patients' Parkinson's disease progression and treatment efficacy
               </p>
@@ -177,7 +177,7 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="grid gap-4">
                   <Link href="/new-assessment">
-                    <Button className="w-full">New Assessment</Button>
+                    <Button className="w-full bg-gradient-to-tr from-purple-900 to-purple-600 text-purple-100">New Assessment</Button>
                   </Link>
                   <Link href="/patients/new">
                     <Button variant="outline" className="w-full">
