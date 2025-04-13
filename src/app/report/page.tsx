@@ -29,8 +29,8 @@ console.log("Hello, World!");
 `
 
 const fetchGemOut = async (id: string) => {
-  const response = await fetch(`http://127.0.0.1:5000/gemini_report/${id}`, {
-    method: 'POST', // Ensure the method is POST
+  const response = await fetch(`http://127.0.0.1:5000/gemini_report?patient_id=${id}`, {
+    method: 'GET', // Change to GET
     headers: {
       'Content-Type': 'application/json',
     },
