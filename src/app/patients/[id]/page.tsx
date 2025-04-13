@@ -58,8 +58,33 @@ export default function PatientProfilePage() {
   const [treatmentDate, setTreatmentDate] = useState(new Date().toISOString().split("T")[0])
   const [treatmentDescription, setTreatmentDescription] = useState("")
   const [treatmentProvider, setTreatmentProvider] = useState("Dr. Johnson")
+  const [patientAssessments, setPatientAssessments] = useState<any[]>([])
 
   useEffect(() => {
+    const fetchAssessments = async (patientId: string) => {
+      try {
+        const response = await fetch(`http://127.0.0.1:5000/assessments/${patientId}`)
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch assessments')
+        }
+        let data = await response.json()
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch assessments')
+        }
+        // Transform the data to match the expected format
+        const transformedData = data.data;
+        // drop id, type, patient_id
+        const filteredData = transformedData.map((assessment: any) => {
+          const { id, type, patient_id, ...rest } = assessment;
+          return rest;
+        });
+        setPatientAssessments(filteredData)
+      } catch(error) {
+        console.error('Error fetching assessments:', error)
+      }
+    }
+
     const fetchPatient = async () => {
       try {
         const response = await fetch(`http://127.0.0.1:5000/patient/${patientId}`)
@@ -98,11 +123,14 @@ export default function PatientProfilePage() {
         console.error('Error fetching patient:', error)
       } finally {
         setLoading(false)
+        fetchAssessments(patientId)
       }
     }
 
+    
+
     if (patientId) {
-      fetchPatient()
+      fetchPatient();
     }
   }, [patientId])
 
@@ -336,35 +364,35 @@ export default function PatientProfilePage() {
 
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>Disease Progression</CardTitle>
+              <CardTitle>PD Progression</CardTitle>
               <CardDescription>Tracking symptoms over time</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={patient.progressData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <LineChart data={patientAssessments} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="tremor" stroke="#ef4444" name="Tremor Severity" />
-                    <Line type="monotone" dataKey="mobility" stroke="#10b981" name="Mobility Score" />
-                    <Line type="monotone" dataKey="overall" stroke="#3b82f6" name="Overall Severity" strokeWidth={2} />
+                    <Line type="monotone" dataKey="severity" stroke="#ef4444" name="Severity Score" />
+                    <Line type="monotone" dataKey="tremor" stroke="#10b981" name="Tremor" />
+                    <Line type="monotone" dataKey="deviation" stroke="#3b82f6" name="Average Deviation" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
               <div className="flex justify-center mt-4 space-x-6">
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                  <span className="text-sm">Tremor (lower is better)</span>
+                  <span className="text-sm">Severity Score</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-emerald-500 mr-2"></div>
-                  <span className="text-sm">Mobility (higher is better)</span>
+                  <span className="text-sm">Tremor</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                  <span className="text-sm">Overall Severity (lower is better)</span>
+                  <span className="text-sm">Deviation</span>
                 </div>
               </div>
             </CardContent>

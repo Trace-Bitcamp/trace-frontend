@@ -64,6 +64,7 @@ export default function NewAssessment() {
 
     fetchPatientById()
   }, [patientId])
+  
 
   useEffect(() => {
     if (canvasRefTemplate.current) {
@@ -242,7 +243,7 @@ export default function NewAssessment() {
 
   const calculateMetrics = () => {
     setLoading(true);
-    submitCanvases();
+    submitAssessment();
     
     setCompleted(true)
   }
@@ -307,12 +308,12 @@ export default function NewAssessment() {
     return "text-red-500"
   }
 
-  const uploadImageToServer = async (traceData: string, templateData: string, age: number) => {
+  const uploadImagesToServer = async (traceData: string, templateData: string, age: number) => {
     if (!selectedPatient) {
       throw new Error('Please select a patient first')
     }
 
-    const response = await fetch('http://127.0.0.1:5000/submit-assessment', {
+    const response = await fetch('http://127.0.0.1:5000/submit-images', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -328,11 +329,11 @@ export default function NewAssessment() {
     
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error('Failed to submit assessment' + errorText);
+      throw new Error('Failed to submit images' + errorText);
     }
 
     const result = await response.json();
-    console.log('Assessment successfully submitted:', result);
+    console.log('Images successfully submitted:', result);
 
     // set the metrics
     const data = result.data;
@@ -344,7 +345,7 @@ export default function NewAssessment() {
     });
   };
 
-  const submitCanvases = async () => {
+  const submitAssessment = async () => {
     if (!canvasRefTemplate.current || !canvasRefDrawings.current || !ctxTemplate) return;
     
     const templateCanvas = canvasRefTemplate.current;
@@ -355,10 +356,39 @@ export default function NewAssessment() {
     const drawingsImageURL = drawingsCanvas.toDataURL("image/png");
     const age = 70;
     
+    console.log('uploading images to server...');
     // Upload images to the server
-    await uploadImageToServer(drawingsImageURL, templateImageURL, age);
-
+    await uploadImagesToServer(drawingsImageURL, templateImageURL, age);
   };
+
+  const logAssessment = async () => {
+    // Save the assessment to the database
+    const response = await fetch('http://127.0.0.1:5000/add-assessment',{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date: new Date().toISOString(),
+        type: assessmentType,
+        patientId: selectedPatient?.id,
+        severity: metrics.severity,
+        tremor: metrics.tremor,
+        deviation: metrics.deviation,
+      })
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error('Failed to save assessment' + errorText);
+    }
+    const result = await response.json();
+    console.log('Assessment successfully saved to database:', result);
+  }
+
+  useEffect(() => {
+    logAssessment()
+  }, [metrics]);
 
   const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient)
