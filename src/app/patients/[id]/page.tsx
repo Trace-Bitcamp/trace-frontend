@@ -294,14 +294,12 @@ export default function PatientProfilePage() {
   const [doctorNotes, setDoctorNotes] = useState<{ date: string; note: string; doctor: string }[]>([])
 
   const [isAddTreatmentOpen, setIsAddTreatmentOpen] = useState(false)
-  const [newTreatment, setNewTreatment] = useState({
-    treatment: "",
-    date: new Date().toISOString().split("T")[0],
-    provider: "Dr. Johnson",
-  })
+  const [treatmentDate, setTreatmentDate] = useState(new Date().toISOString().split("T")[0])
+  const [treatmentDescription, setTreatmentDescription] = useState("")
+  const [treatmentProvider, setTreatmentProvider] = useState("Dr. Johnson")
 
-  const handleAddTreatment = () => {
-    if (!newTreatment.treatment.trim()) {
+  const handleAddTreatment = async () => {
+    if (!treatmentDescription.trim()) {
       toast({
         title: "Missing information",
         description: "Please enter a treatment description",
@@ -310,35 +308,45 @@ export default function PatientProfilePage() {
       return
     }
 
-    // Add the new treatment to the patient's treatments
-    const updatedTreatments = [
-      {
-        date: newTreatment.date,
-        treatment: newTreatment.treatment,
-        provider: newTreatment.provider,
-      },
-      ...patient.treatments,
-    ]
+    try {
+      const response = await fetch(`/api/treatments?date=${treatmentDate}&t_desc=${encodeURIComponent(treatmentDescription)}&provider=${encodeURIComponent(treatmentProvider)}`);
 
-    // Update the patient object
-    setPatient({
-      ...patient,
-      treatments: updatedTreatments,
-    })
+      if (!response.ok) {
+        throw new Error('Failed to save treatment')
+      }
 
-    // Reset form and close dialog
-    setNewTreatment({
-      treatment: "",
-      date: new Date().toISOString().split("T")[0],
-      provider: "Dr. Johnson",
-    })
-    setIsAddTreatmentOpen(false)
+      const savedTreatment = await response.json()
 
-    toast({
-      title: "Treatment added",
-      description: "The new treatment has been added to the patient's record.",
-      type: "success",
-    })
+      // Add the new treatment to the patient's treatments
+      const updatedTreatments = [
+        savedTreatment,
+        ...patient.treatments,
+      ]
+
+      // Update the patient object
+      setPatient({
+        ...patient,
+        treatments: updatedTreatments,
+      })
+
+      // Reset form and close dialog
+      setTreatmentDate(new Date().toISOString().split("T")[0])
+      setTreatmentDescription("")
+      setTreatmentProvider("Dr. Johnson")
+      setIsAddTreatmentOpen(false)
+
+      toast({
+        title: "Treatment added",
+        description: "The new treatment has been added to the patient's record.",
+        type: "success",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save treatment. Please try again.",
+        type: "destructive",
+      })
+    }
   }
 
   useEffect(() => {
@@ -741,8 +749,8 @@ export default function PatientProfilePage() {
                 <Input
                   id="treatment-date"
                   type="date"
-                  value={newTreatment.date}
-                  onChange={(e) => setNewTreatment({ ...newTreatment, date: e.target.value })}
+                  value={treatmentDate}
+                  onChange={(e) => setTreatmentDate(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
@@ -750,8 +758,8 @@ export default function PatientProfilePage() {
                 <Textarea
                   id="treatment-description"
                   placeholder="Enter medication, therapy, or procedure details..."
-                  value={newTreatment.treatment}
-                  onChange={(e) => setNewTreatment({ ...newTreatment, treatment: e.target.value })}
+                  value={treatmentDescription}
+                  onChange={(e) => setTreatmentDescription(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
@@ -759,8 +767,8 @@ export default function PatientProfilePage() {
                 <Input
                   id="treatment-provider"
                   placeholder="Enter provider name"
-                  value={newTreatment.provider}
-                  onChange={(e) => setNewTreatment({ ...newTreatment, provider: e.target.value })}
+                  value={treatmentProvider}
+                  onChange={(e) => setTreatmentProvider(e.target.value)}
                 />
               </div>
             </div>
