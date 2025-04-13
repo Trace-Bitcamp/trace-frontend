@@ -80,11 +80,11 @@ export default function NewAssessment() {
       // Draw spiral template
       const centerX = width / 2
       const centerY = height / 2
-      const maxRadius = Math.min(width, height) / 2 - 20
+      const maxRadius = Math.min(width, height) / 2 - 100 // Adjusted to make the spiral tighter
 
       context.beginPath()
       for (let i = 0; i < 720; i++) {
-        const angle = 0.1 * i * (Math.PI / 180)
+        const angle = 1.2 * i * (Math.PI / 180)
         const radius = (maxRadius / 720) * i
         const x = centerX + radius * Math.cos(angle)
         const y = centerY + radius * Math.sin(angle)
@@ -103,7 +103,7 @@ export default function NewAssessment() {
       let sideLength = 100; // Initial side length
       let x = centerX; // Start at the center
       let y = centerY; // Start at the center
-      const turns = 3;
+      const turns = 2;
 
       context.beginPath();
       context.moveTo(x, y);
