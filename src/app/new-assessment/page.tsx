@@ -301,18 +301,19 @@ export default function NewAssessment() {
     return "text-red-500"
   }
 
-  const uploadImageToServer = async (imageData: string, imageName: string) => {
+  const uploadImageToServer = async (traceData: string, templateData: string, age: number) => {
     const response = await fetch('http://127.0.0.1:5000/submit-assessment', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({ image: imageData, name: imageName }),
+      body: JSON.stringify({ trace: traceData, template: templateData, age: age }),
     });
-
+    
     if (!response.ok) {
-      throw new Error('Failed to upload image');
+      const errorText = await response.text();
+      throw new Error('Failed to upload image' + errorText);
     }
 
     const result = await response.json();
@@ -321,18 +322,17 @@ export default function NewAssessment() {
 
   const exportBothCanvases = async () => {
     if (!canvasRefTemplate.current || !canvasRefDrawings.current) return;
-
+    
     const templateCanvas = canvasRefTemplate.current;
     const drawingsCanvas = canvasRefDrawings.current;
-
+    
     const templateImageURL = templateCanvas.toDataURL("image/png");
     const drawingsImageURL = drawingsCanvas.toDataURL("image/png");
-
+    const age = 0;
+    
     // Upload images to the server
-    await uploadImageToServer(templateImageURL, "template-image.png");
-    await uploadImageToServer(drawingsImageURL, "drawings-image.png");
+    await uploadImageToServer(drawingsImageURL, templateImageURL, age);
 
-    console.log("Images uploaded to server.");
   };
 
   return (
