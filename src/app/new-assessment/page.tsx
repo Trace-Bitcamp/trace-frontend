@@ -45,8 +45,8 @@ export default function NewAssessment() {
       if (context) {
         context.lineJoin = "round"
         context.lineCap = "round"
-        context.lineWidth = 2
-        context.strokeStyle = "#000000"
+        context.strokeStyle = "#cccccc"
+        context.lineWidth = 5
         setCtxTemplate(context)
 
         // Draw template based on assessment type
@@ -64,7 +64,7 @@ export default function NewAssessment() {
       if (context) {
         context.lineJoin = "round"
         context.lineCap = "round"
-        context.lineWidth = 2
+        context.lineWidth = 4
         context.strokeStyle = "#000000"
         setCtxDrawings(context)
       }
@@ -73,8 +73,6 @@ export default function NewAssessment() {
 
   const drawTemplate = (context: CanvasRenderingContext2D, type: string, width: number, height: number) => {
     context.clearRect(0, 0, width, height)
-    context.strokeStyle = "#cccccc"
-    context.lineWidth = 1
 
     if (type === "spiral") {
       // Draw spiral template
@@ -325,7 +323,7 @@ export default function NewAssessment() {
     
     const templateCanvas = canvasRefTemplate.current;
     const drawingsCanvas = canvasRefDrawings.current;
-    ctxTemplate.lineWidth = 5;
+
     
     const templateImageURL = templateCanvas.toDataURL("image/png");
     const drawingsImageURL = drawingsCanvas.toDataURL("image/png");
