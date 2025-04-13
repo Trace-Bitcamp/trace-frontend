@@ -123,7 +123,7 @@ export default function Home() {
                   <CardDescription>Common tasks and shortcuts</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
-                  <Link href="/assessments/new">
+                  <Link href="/new_assessment">
                     <Button className="w-full">New Assessment</Button>
                   </Link>
                   <Link href="/patients/new">

@@ -174,7 +174,7 @@ export default function PatientsPage() {
                               View
                             </Button>
                           </Link>
-                          <Link href={`/assessments/new?patient=${patient.id}`}>
+                          <Link href={`/new_assessment?patient=${patient.id}`}>
                             <Button size="sm">Assess</Button>
                           </Link>
                         </div>

@@ -468,7 +468,7 @@ export default function PatientProfilePage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => (window.location.href = `/assessments/new?patient=${patient.id}`)}>
+            <Button onClick={() => (window.location.href = `/new_assessment?patient=${patient.id}`)}>
               New Assessment
             </Button>
           </div>
