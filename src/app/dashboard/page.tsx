@@ -91,8 +91,7 @@ export default function Home() {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">24</div>
-                  <p className="text-xs text-muted-foreground">+2 this month</p>
+                  <div className="text-2xl font-bold">4</div>
                 </CardContent>
               </Card>
               <Card>
@@ -101,7 +100,7 @@ export default function Home() {
                   <ClipboardList className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">7</div>
+                  <div className="text-2xl font-bold">5</div>
                 </CardContent>
               </Card>
               <Card>
@@ -110,8 +109,7 @@ export default function Home() {
                   <Activity className="h-4 w-4 text-emerald-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">68%</div>
-                  <p className="text-xs text-muted-foreground">+12% from last month</p>
+                  <div className="text-2xl font-bold">3</div>
                 </CardContent>
               </Card>
               <Card>
@@ -120,8 +118,7 @@ export default function Home() {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">32</div>
-                  <p className="text-xs text-muted-foreground">Last 30 days</p>
+                  <div className="text-2xl font-bold">4</div>
                 </CardContent>
               </Card>
             </div>
