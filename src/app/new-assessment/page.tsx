@@ -362,6 +362,9 @@ export default function NewAssessment() {
   };
 
   const logAssessment = async () => {
+    if (metrics.severity === 0) {
+      return;
+    }
     // Save the assessment to the database
     const response = await fetch('http://127.0.0.1:5000/add-assessment',{
       method: 'POST',
@@ -384,6 +387,24 @@ export default function NewAssessment() {
     }
     const result = await response.json();
     console.log('Assessment successfully saved to database:', result);
+
+
+    const response2 = await fetch('http://127.0.0.1:5000/patient/' + selectedPatient?.id, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        severity: metrics.severity
+      })
+    });
+    if (!response2.ok) {
+      const errorText = await response2.text();
+      throw new Error('Failed to update patient severity' + errorText);
+    }
+    const result2 = await response2.json();
+    console.log('Patient severity successfully updated:', result2);
+
   }
 
   useEffect(() => {
