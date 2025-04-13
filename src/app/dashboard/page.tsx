@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, ClipboardList, Users, FileText } from "lucide-react"
 
-interface RecentPatient {
+interface RecentAssessment {
+  assessment_id: string
   id: string
   fName: string
   lName: string
@@ -14,23 +15,37 @@ interface RecentPatient {
 }
 
 export default function Home() {
-  const [recentPatients, setRecentPatients] = useState<RecentPatient[]>([])
+  const [recentAssessments, setRecentAssessments] = useState<RecentAssessment[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchRecentAssessments = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/recent-assessments')
+        const response = await fetch('http://127.0.0.1:5000/assessments')
         if (!response.ok) {
-          throw new Error('Failed to fetch recent assessments')
+          throw new Error('Failed to fetch all assessments')
         }
         const data = await response.json()
         if (data.success) {
-          setRecentPatients(data.data.map((item: any) => item.patient))
+          setRecentAssessments(data.data.map(async (item: any) => {
+            const response = await fetch('http://127.0.0.1:5000/patient/' + item.patientId)
+            if (!response.ok) {
+              throw new Error('Failed to fetch patient data')
+            }
+            const patientData = await response.json()
+            return {
+              assessment_id: item.id,
+              id: item.patientId,
+              fName: patientData.data.fName,
+              lName: patientData.data.lName,
+              date: item.date,
+            }
+          }))
         }
       } catch (error) {
         console.error('Error fetching recent assessments:', error)
       } finally {
+        console.log('recentAssessments', recentAssessments)
         setLoading(false)
       }
     }
@@ -138,20 +153,20 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
-                  ) : recentPatients.length > 0 ? (
+                  ) : recentAssessments.length > 0 ? (
                     <div className="space-y-4">
-                      {recentPatients.map((patient) => (
-                        <div key={patient.id} className="flex items-center justify-between">
+                      {recentAssessments.map((assessment) => (
+                        <div key={assessment.assessment_id} className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="font-medium">
-                              {patient.fName} {patient.lName}
+                              {assessment.fName} {assessment.lName}
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="text-sm text-muted-foreground">
-                              {formatDate(patient.date)}
+                              {formatDate(assessment.date)}
                             </div>
-                            <Link href={`/patients/${patient.id}`}>
+                            <Link href={`/patients/${assessment.id}`}>
                               <Button variant="ghost" size="sm">
                                 View
                               </Button>
