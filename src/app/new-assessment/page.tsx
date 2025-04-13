@@ -429,10 +429,10 @@ export default function NewAssessment() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">New Assessment</h1>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={resetCanvas}>
+            {/* <Button variant="outline" onClick={resetCanvas}>
               Reset
             </Button>
-            <Button disabled={!completed}>Save Assessment</Button>
+            <Button disabled={!completed}>Save Assessment</Button> */}
           </div>
         </div>
 
