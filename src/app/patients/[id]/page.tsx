@@ -245,7 +245,7 @@ export default function PatientProfilePage() {
 
   if (loading) {
     return (
-      <div className="px-10 py-10">
+      <div className="h-screen bg-gradient-to-tr from-purple-200 to-purple-100px-10 py-10">
         <div className="flex items-center space-x-4">
           <div className="h-12 w-12 rounded-full bg-muted animate-pulse"></div>
           <div className="space-y-2">
@@ -259,7 +259,7 @@ export default function PatientProfilePage() {
 
   if (!patient) {
     return (
-      <div className="px-10 py-10">
+      <div className="bg-gradient-to-tr from-purple-200 to-purple-100 px-10 py-10">
         <Link href="/patients" className="flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Patients
@@ -278,19 +278,19 @@ export default function PatientProfilePage() {
   }
 
   return (
-    <div className="px-10 py-10">
-      <Link href="/patients" className="flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+    <div className="bg-gradient-to-tr from-purple-200 to-purple-100 px-10 py-10">
+      <Link href="/patients" className="flex text-purple-700/80 hover:text-purple-900 items-center text-sm mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Patients
       </Link>
 
       <div className="grid gap-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 bg-white rounded-lg p-5">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <User className="h-6 w-6 text-primary" />
             </div>
-            <div>
+            <div >
               <h1 className="text-3xl font-bold tracking-tight">{patient.fName} {patient.lName}</h1>
               <p className="text-muted-foreground">
                 Patient ID: {patient.id} • {patient.gender}, {patient.age} years old
@@ -322,34 +322,6 @@ export default function PatientProfilePage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Diagnosis Date</p>
                   <p>{patient.diagnosis}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Severity</p>
-                  <p
-                    className={`font-medium ${
-                      patient.severity === "Mild"
-                        ? "text-emerald-500"
-                        : patient.severity === "Moderate"
-                          ? "text-amber-500"
-                          : "text-red-500"
-                    }`}
-                  >
-                    {patient.severity}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Trend</p>
-                  <p
-                    className={`font-medium ${
-                      patient.trend === "Improved"
-                        ? "text-emerald-500"
-                        : patient.trend === "Declined"
-                          ? "text-red-500"
-                          : "text-amber-500"
-                    }`}
-                  >
-                    {patient.trend}
-                  </p>
                 </div>
               </div>
               <div className="pt-2">
@@ -403,10 +375,9 @@ export default function PatientProfilePage() {
         </div>
 
         <Tabs defaultValue="treatments">
-          <TabsList className="mb-4">
+          <TabsList className="mb-4 bg-white">
             <TabsTrigger value="treatments">Treatment History</TabsTrigger>
             <TabsTrigger value="notes">Doctor's Notes</TabsTrigger>
-            <TabsTrigger value="ai">AI Consultation</TabsTrigger>
           </TabsList>
 
           <TabsContent value="treatments">
@@ -500,76 +471,6 @@ export default function PatientProfilePage() {
                     )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="ai">
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Treatment Consultation</CardTitle>
-                <CardDescription>Get AI-powered treatment recommendations</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="rounded-lg border bg-card p-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Enter current treatments and symptoms</p>
-                    <div className="flex space-x-2">
-                      <Textarea
-                        placeholder="e.g., Patient is currently on Levodopa 100mg 3x daily and experiencing morning tremors..."
-                        className="min-h-[80px] flex-1"
-                        value={aiMessage}
-                        onChange={(e) => setAiMessage(e.target.value)}
-                      />
-                      <Button className="self-end" onClick={handleSendMessage} disabled={aiLoading}>
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {aiLoading && (
-                  <div className="flex items-center justify-center p-8">
-                    <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-primary"></div>
-                    <span className="ml-2">Analyzing patient data...</span>
-                  </div>
-                )}
-
-                {aiResponse && !aiLoading && (
-                  <div className="rounded-lg border bg-primary/5 p-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="h-4 w-4 text-primary"
-                        >
-                          <path d="M12 8V4H8" />
-                          <rect width="16" height="12" x="4" y="8" rx="2" />
-                          <path d="M2 14h2" />
-                          <path d="M20 14h2" />
-                          <path d="M15 13v2" />
-                          <path d="M9 13v2" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">AI Treatment Recommendation</p>
-                      </div>
-                    </div>
-                    <p className="text-sm">{aiResponse}</p>
-                    <div className="mt-4 text-xs text-muted-foreground">
-                      <p>
-                        Note: This is an AI-generated recommendation based on the information provided. Always use
-                        clinical judgment and consult with specialists when appropriate.
-                      </p>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>

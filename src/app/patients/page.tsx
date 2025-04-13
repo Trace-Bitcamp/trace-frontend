@@ -48,9 +48,9 @@ export default function PatientsPage() {
 
   return (
 
-    <div className="px-10 py-10">
+    <div className="px-10 bg-gradient-to-tl h-screen from-purple-200 to-purple-100 py-10">
       <div className="mb-6">
-        <Link href="/dashboard" className="flex items-center text-sm text-muted-foreground hover:text-foreground">
+        <Link href="/dashboard" className="flex items-center text-sm text-purple-700/80 hover:text-purple-900">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </Link>
@@ -60,7 +60,7 @@ export default function PatientsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="gap-2">
+            <Button className="gap-2">
               <Download className="h-4 w-4" />
               Export
             </Button>

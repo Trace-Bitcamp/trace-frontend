@@ -95,9 +95,9 @@ export default function NewPatientPage() {
   }
 
   return (
-    <div className="px-10 py-10">
-      <Link href="/patients" className="flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="mr-2 h-4 w-4" />
+    <div className="bg-gradient-to-tr from-purple-200 to-purple-100 px-10 py-10">
+      <Link href="/patients" className="flex items-center text-sm text-purple-700/80 hover:text-purple-900 mb-6">
+        <ArrowLeft className="mr-2 h-4 w-4 " />
         Back to Patients
       </Link>
 
