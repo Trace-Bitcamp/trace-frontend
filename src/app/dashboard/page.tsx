@@ -1,9 +1,58 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, ClipboardList, Users, FileText } from "lucide-react"
 
+interface RecentPatient {
+  id: string
+  fName: string
+  lName: string
+  date: string
+}
+
 export default function Home() {
+  const [recentPatients, setRecentPatients] = useState<RecentPatient[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRecentAssessments = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/recent-assessments')
+        if (!response.ok) {
+          throw new Error('Failed to fetch recent assessments')
+        }
+        const data = await response.json()
+        if (data.success) {
+          setRecentPatients(data.data.map((item: any) => item.patient))
+        }
+      } catch (error) {
+        console.error('Error fetching recent assessments:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRecentAssessments()
+  }, [])
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    if (date.toDateString() === today.toDateString()) {
+      return "Today"
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday"
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    }
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 w-full z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -83,34 +132,42 @@ export default function Home() {
                   <CardDescription>Your recently assessed patients</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {[
-                      { name: "Sarah Miller", date: "Today", score: "Moderate", change: "Improved" },
-                      { name: "Robert Chen", date: "Yesterday", score: "Mild", change: "Stable" },
-                      { name: "Maria Garcia", date: "Apr 10", score: "Severe", change: "Declined" },
-                      { name: "James Wilson", date: "Apr 8", score: "Moderate", change: "Improved" },
-                    ].map((patient, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="font-medium">{patient.name}</div>
+                  {loading ? (
+                    <div className="space-y-4">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                          <div className="h-4 w-24 bg-muted animate-pulse rounded" />
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-sm text-muted-foreground">{patient.date}</div>
-                          <div
-                            className={`text-sm ${
-                              patient.change === "Improved"
-                                ? "text-emerald-500"
-                                : patient.change === "Declined"
-                                  ? "text-red-500"
-                                  : "text-amber-500"
-                            }`}
-                          >
-                            {patient.change}
+                      ))}
+                    </div>
+                  ) : recentPatients.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentPatients.map((patient) => (
+                        <div key={patient.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="font-medium">
+                              {patient.fName} {patient.lName}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-sm text-muted-foreground">
+                              {formatDate(patient.date)}
+                            </div>
+                            <Link href={`/patients/${patient.id}`}>
+                              <Button variant="ghost" size="sm">
+                                View
+                              </Button>
+                            </Link>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-4">
+                      No recent assessments found
+                    </div>
+                  )}
                 </CardContent>
               </Card>
               <Card className="col-span-1">

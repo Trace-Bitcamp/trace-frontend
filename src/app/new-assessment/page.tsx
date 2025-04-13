@@ -11,9 +11,19 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Activity, ArrowLeft, Download, Save } from "lucide-react"
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
+import { PatientSelector } from "@/components/patient-selector"
+
+interface Patient {
+  id: string;
+  fName: string;
+  lName: string;
+}
 
 export default function NewAssessment() {
+  const searchParams = useSearchParams()
+  const patientId = searchParams.get('patientId')
+  
   const canvasRefTemplate = useRef<HTMLCanvasElement | null>(null)
   const canvasRefDrawings = useRef<HTMLCanvasElement | null>(null)
   const [ctxTemplate, setCtxTemplate] = useState<CanvasRenderingContext2D | null>(null)
@@ -21,7 +31,7 @@ export default function NewAssessment() {
   const [isDrawing, setIsDrawing] = useState(false)
   const [lastPoint, setLastPoint] = useState({ x: 0, y: 0 })
   const [patientName, setPatientName] = useState("")
-  const [patientId, setPatientId] = useState("")
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [assessmentType, setAssessmentType] = useState("spiral")
   const [points, setPoints] = useState<{ x: number; y: number; time: number }[]>([])
   const [metrics, setMetrics] = useState({
@@ -32,6 +42,29 @@ export default function NewAssessment() {
     overall: 0,
   })
   const [completed, setCompleted] = useState(false);
+
+  useEffect(() => {
+    const fetchPatientById = async () => {
+      if (patientId) {
+        try {
+          const response = await fetch(`http://127.0.0.1:5000/patient/${patientId}`)
+          if (!response.ok) {
+            throw new Error('Failed to fetch patient')
+          }
+          const data = await response.json()
+          if (data.success) {
+            const patient = data.data
+            setSelectedPatient(patient)
+            setPatientName(`${patient.fName} ${patient.lName}`)
+          }
+        } catch (error) {
+          console.error('Error fetching patient:', error)
+        }
+      }
+    }
+
+    fetchPatientById()
+  }, [patientId])
 
   useEffect(() => {
     if (canvasRefTemplate.current) {
@@ -300,13 +333,22 @@ export default function NewAssessment() {
   }
 
   const uploadImageToServer = async (traceData: string, templateData: string, age: number) => {
+    if (!selectedPatient) {
+      throw new Error('Please select a patient first')
+    }
+
     const response = await fetch('http://127.0.0.1:5000/submit-assessment', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // 'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({ trace: traceData, template: templateData, age: age }),
+      body: JSON.stringify({ 
+        trace: traceData, 
+        template: templateData, 
+        age: age,
+        fName: selectedPatient.fName,
+        lName: selectedPatient.lName
+      }),
     });
     
     if (!response.ok) {
@@ -333,6 +375,11 @@ export default function NewAssessment() {
     await uploadImageToServer(drawingsImageURL, templateImageURL, age);
 
   };
+
+  const handlePatientSelect = (patient: Patient) => {
+    setSelectedPatient(patient)
+    setPatientName(`${patient.fName} ${patient.lName}`)
+  }
 
   return (
     <div className="px-10 py-10">
@@ -362,21 +409,10 @@ export default function NewAssessment() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="patient-id">Patient ID</Label>
-                <Input
-                  id="patient-id"
-                  placeholder="Enter patient ID"
-                  value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="patient-name">Patient Name</Label>
-                <Input
-                  id="patient-name"
-                  placeholder="Enter patient name"
-                  value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
+                <Label htmlFor="patient-selector">Select Patient</Label>
+                <PatientSelector 
+                  onPatientSelect={handlePatientSelect} 
+                  initialValue={selectedPatient || undefined}
                 />
               </div>
               <div className="space-y-2">
