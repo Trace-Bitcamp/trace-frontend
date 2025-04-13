@@ -14,7 +14,8 @@ import { Activity, ArrowLeft, Download, Save } from "lucide-react"
 import { useRouter } from "next/router";
 
 export default function NewAssessment() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const canvasRefTemplate = useRef<HTMLCanvasElement | null>(null)
+  const canvasRefDrawings = useRef<HTMLCanvasElement | null>(null)
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [lastPoint, setLastPoint] = useState({ x: 0, y: 0 })
@@ -32,8 +33,8 @@ export default function NewAssessment() {
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
-    if (canvasRef.current) {
-      const canvas = canvasRef.current
+    if (canvasRefTemplate.current) {
+      const canvas = canvasRefTemplate.current
       const context = canvas.getContext("2d")
 
       // Set canvas dimensions
@@ -49,9 +50,16 @@ export default function NewAssessment() {
 
         // Draw template based on assessment type
         drawTemplate(context, assessmentType, canvas.width, canvas.height)
+
+        // Set up the drawings canvas
+        if (canvasRefDrawings.current) {
+          const drawingsCanvas = canvasRefDrawings.current
+          drawingsCanvas.width = canvas.width
+          drawingsCanvas.height = canvas.height
+        }
       }
     }
-  }, [canvasRef, assessmentType])
+  }, [canvasRefTemplate, canvasRefDrawings, assessmentType])
 
   const drawTemplate = (context: CanvasRenderingContext2D, type: string, width: number, height: number) => {
     context.clearRect(0, 0, width, height)
@@ -78,6 +86,43 @@ export default function NewAssessment() {
         }
       }
       context.stroke()
+    } else if (type === "meander") {
+      // Draw square spiral template
+      const centerX = width / 2;
+      const centerY = height / 2;
+      let sideLength = 100; // Initial side length
+      let x = centerX; // Start at the center
+      let y = centerY; // Start at the center
+      const turns = 3;
+
+      context.beginPath();
+      context.moveTo(x, y);
+      // move right
+      x += sideLength / 2;
+      context.lineTo(x, y);
+      // move down
+      y += sideLength / 2;
+      context.lineTo(x, y);
+      for(let i = 0; i < turns; i++) {
+        // move left
+        x -= sideLength;
+        context.lineTo(x, y);
+        // move up
+        y -= sideLength;
+        context.lineTo(x, y);
+
+        sideLength += 100; // Increase side length for next turn
+
+        // move right
+        x += sideLength;
+        context.lineTo(x, y);
+        // move down
+        y += sideLength;
+        context.lineTo(x, y);
+
+        sideLength += 100; // Increase side length for next turn
+      }
+      context.stroke();
     } else if (type === "text") {
       // Draw text template
       context.font = "24px Arial"
@@ -123,9 +168,12 @@ export default function NewAssessment() {
     // Get coordinates
     const coords = getCoordinates(e)
 
-    // Draw line
-    ctx.lineTo(coords.x, coords.y)
-    ctx.stroke()
+    // Draw line on the drawings canvas
+    const drawingsCtx = canvasRefDrawings.current?.getContext("2d")
+    if (drawingsCtx) {
+      drawingsCtx.lineTo(coords.x, coords.y)
+      drawingsCtx.stroke()
+    }
 
     // Record point with timestamp
     setPoints([...points, { x: coords.x, y: coords.y, time: Date.now() }])
@@ -139,17 +187,12 @@ export default function NewAssessment() {
 
     setIsDrawing(false)
     ctx.closePath()
-
-    // Calculate metrics after drawing is complete
-    if (points.length > 10) {
-      calculateMetrics()
-    }
   }
 
   const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return { x: 0, y: 0 }
+    if (!canvasRefTemplate.current) return { x: 0, y: 0 }
 
-    const canvas = canvasRef.current
+    const canvas = canvasRefTemplate.current
     const rect = canvas.getBoundingClientRect()
 
     // Handle both mouse and touch events
@@ -167,6 +210,7 @@ export default function NewAssessment() {
   }
 
   const calculateMetrics = () => {
+    exportBothCanvases();
     // This is a simplified example of metrics calculation
     // In a real application, these would be more sophisticated algorithms
 
@@ -211,9 +255,9 @@ export default function NewAssessment() {
   }
 
   const resetCanvas = () => {
-    if (!ctx || !canvasRef.current) return
+    if (!ctx || !canvasRefTemplate.current) return
 
-    const canvas = canvasRef.current
+    const canvas = canvasRefTemplate.current
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     drawTemplate(ctx, assessmentType, canvas.width, canvas.height)
 
@@ -244,6 +288,39 @@ export default function NewAssessment() {
     if (score < 60) return "text-amber-500"
     return "text-red-500"
   }
+
+  const uploadImageToServer = async (imageData: string, imageName: string) => {
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ image: imageData, name: imageName }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image');
+    }
+
+    const result = await response.json();
+    console.log('Image uploaded successfully:', result);
+  };
+
+  const exportBothCanvases = async () => {
+    if (!canvasRefTemplate.current || !canvasRefDrawings.current) return;
+
+    const templateCanvas = canvasRefTemplate.current;
+    const drawingsCanvas = canvasRefDrawings.current;
+
+    const templateImageURL = templateCanvas.toDataURL("image/png");
+    const drawingsImageURL = drawingsCanvas.toDataURL("image/png");
+
+    // Upload images to the server
+    await uploadImageToServer(templateImageURL, "template-image.png");
+    await uploadImageToServer(drawingsImageURL, "drawings-image.png");
+
+    console.log("Images uploaded to server.");
+  };
 
   return (
     <div className="px-10 py-10">
@@ -298,6 +375,7 @@ export default function NewAssessment() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="spiral">Spiral Tracing</SelectItem>
+                    <SelectItem value="meander">Meander Tracing</SelectItem>
                     <SelectItem value="text">Text Tracing</SelectItem>
                     <SelectItem value="line">Straight Line</SelectItem>
                   </SelectContent>
@@ -322,7 +400,7 @@ export default function NewAssessment() {
             <CardContent>
               <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border">
                 <canvas
-                  ref={canvasRef}
+                  ref={canvasRefTemplate}
                   className="h-full w-full touch-none"
                   onMouseDown={startDrawing}
                   onMouseMove={draw}
@@ -331,6 +409,11 @@ export default function NewAssessment() {
                   onTouchStart={startDrawing}
                   onTouchMove={draw}
                   onTouchEnd={stopDrawing}
+                />
+
+                <canvas
+                  ref={canvasRefDrawings}
+                  style={{display: "none"}}
                 />
               </div>
             </CardContent>
