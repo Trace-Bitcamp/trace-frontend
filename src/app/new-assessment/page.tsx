@@ -16,7 +16,8 @@ import { useRouter } from "next/router";
 export default function NewAssessment() {
   const canvasRefTemplate = useRef<HTMLCanvasElement | null>(null)
   const canvasRefDrawings = useRef<HTMLCanvasElement | null>(null)
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null)
+  const [ctxTemplate, setCtxTemplate] = useState<CanvasRenderingContext2D | null>(null)
+  const [ctxDrawings, setCtxDrawings] = useState<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [lastPoint, setLastPoint] = useState({ x: 0, y: 0 })
   const [patientName, setPatientName] = useState("")
@@ -46,17 +47,26 @@ export default function NewAssessment() {
         context.lineCap = "round"
         context.lineWidth = 2
         context.strokeStyle = "#000000"
-        setCtx(context)
+        setCtxTemplate(context)
 
         // Draw template based on assessment type
         drawTemplate(context, assessmentType, canvas.width, canvas.height)
+      }
+    }
+    if (canvasRefDrawings.current) {
+      const canvas = canvasRefDrawings.current
+      const context = canvas.getContext("2d")
 
-        // Set up the drawings canvas
-        if (canvasRefDrawings.current) {
-          const drawingsCanvas = canvasRefDrawings.current
-          drawingsCanvas.width = canvas.width
-          drawingsCanvas.height = canvas.height
-        }
+      // Set canvas dimensions
+      canvas.width = canvas.offsetWidth
+      canvas.height = canvas.offsetHeight
+
+      if (context) {
+        context.lineJoin = "round"
+        context.lineCap = "round"
+        context.lineWidth = 2
+        context.strokeStyle = "#000000"
+        setCtxDrawings(context)
       }
     }
   }, [canvasRefTemplate, canvasRefDrawings, assessmentType])
@@ -143,56 +153,53 @@ export default function NewAssessment() {
   }
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!ctx) return
+    if (!ctxDrawings) return;
 
-    setIsDrawing(true)
+    setIsDrawing(true);
 
     // Get coordinates
-    const coords = getCoordinates(e)
-    setLastPoint({ x: coords.x, y: coords.y })
+    const coords = getCoordinates(e);
+    setLastPoint({ x: coords.x, y: coords.y });
 
-    // Start new path
-    ctx.beginPath()
-    ctx.moveTo(coords.x, coords.y)
+    // Start new path for template canvas
+    ctxDrawings.beginPath();
+    ctxDrawings.moveTo(coords.x, coords.y);
 
     // Record point with timestamp
-    setPoints([...points, { x: coords.x, y: coords.y, time: Date.now() }])
+    setPoints([...points, { x: coords.x, y: coords.y, time: Date.now() }]);
   }
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !ctx) return
+    if (!isDrawing || !ctxDrawings) return;
 
     // Prevent scrolling on touch devices
-    e.preventDefault()
+    e.preventDefault();
 
     // Get coordinates
-    const coords = getCoordinates(e)
+    const coords = getCoordinates(e);
 
-    // Draw line on the drawings canvas
-    const drawingsCtx = canvasRefDrawings.current?.getContext("2d")
-    if (drawingsCtx) {
-      drawingsCtx.lineTo(coords.x, coords.y)
-      drawingsCtx.stroke()
-    }
+    // Draw line on the template canvas (black)
+    ctxDrawings.lineTo(coords.x, coords.y);
+    ctxDrawings.stroke();
 
     // Record point with timestamp
-    setPoints([...points, { x: coords.x, y: coords.y, time: Date.now() }])
+    setPoints([...points, { x: coords.x, y: coords.y, time: Date.now() }]);
 
     // Update last point
-    setLastPoint({ x: coords.x, y: coords.y })
+    setLastPoint({ x: coords.x, y: coords.y });
   }
 
   const stopDrawing = () => {
-    if (!isDrawing || !ctx) return
+    if (!isDrawing || !ctxDrawings) return;
 
-    setIsDrawing(false)
-    ctx.closePath()
+    setIsDrawing(false);
+    ctxDrawings.closePath();
   }
 
   const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!canvasRefTemplate.current) return { x: 0, y: 0 }
+    if (!canvasRefDrawings.current) return { x: 0, y: 0 }
 
-    const canvas = canvasRefTemplate.current
+    const canvas = canvasRefDrawings.current
     const rect = canvas.getBoundingClientRect()
 
     // Handle both mouse and touch events
@@ -255,21 +262,26 @@ export default function NewAssessment() {
   }
 
   const resetCanvas = () => {
-    if (!ctx || !canvasRefTemplate.current) return
+    if (!ctxTemplate || !ctxDrawings || !canvasRefTemplate.current || !canvasRefDrawings.current) return;
 
-    const canvas = canvasRefTemplate.current
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    drawTemplate(ctx, assessmentType, canvas.width, canvas.height)
+    // Clear the template canvas
+    ctxTemplate.clearRect(0, 0, canvasRefTemplate.current.width, canvasRefTemplate.current.height);
+    drawTemplate(ctxTemplate, assessmentType, canvasRefTemplate.current.width, canvasRefTemplate.current.height);
 
-    setPoints([])
-    setCompleted(false)
+    // Clear the drawings canvas
+    ctxDrawings.clearRect(0, 0, canvasRefDrawings.current.width, canvasRefDrawings.current.height);
+
+
+    // Reset points and metrics
+    setPoints([]);
+    setCompleted(false);
     setMetrics({
-      tremor: 0,
-      deviation: 0,
-      speed: 0,
-      pressure: 0,
-      overall: 0,
-    })
+        tremor: 0,
+        deviation: 0,
+        speed: 0,
+        pressure: 0,
+        overall: 0,
+    });
   }
 
   const handleAssessmentTypeChange = (value: string) => {
@@ -290,10 +302,11 @@ export default function NewAssessment() {
   }
 
   const uploadImageToServer = async (imageData: string, imageName: string) => {
-    const response = await fetch('/api/upload', {
+    const response = await fetch('http://127.0.0.1:5000/submit-assessment', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({ image: imageData, name: imageName }),
     });
@@ -413,7 +426,8 @@ export default function NewAssessment() {
 
                 <canvas
                   ref={canvasRefDrawings}
-                  style={{display: "none"}}
+                  className="absolute top-0 left-0 h-full w-full touch-none"
+                  style={{ pointerEvents: 'none' }}
                 />
               </div>
             </CardContent>
