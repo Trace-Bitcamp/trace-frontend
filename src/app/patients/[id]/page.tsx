@@ -50,6 +50,8 @@ type PatientData = {
   }>;
 };
 
+const patientData = await fetch ('https://') 
+
 // Mock patient data
 const patientsData: Record<string, PatientData> = {
   "P-1001": {
@@ -309,7 +311,7 @@ export default function PatientProfilePage() {
     }
 
     try {
-      const response = await fetch(`/api/treatments?date=${treatmentDate}&t_desc=${encodeURIComponent(treatmentDescription)}&provider=${encodeURIComponent(treatmentProvider)}`);
+      const response = await fetch(`https://localhost:5000/add_treatment?patient_id=${patientId}&date=${treatmentDate}&t_desc=${encodeURIComponent(treatmentDescription)}&provider=${encodeURIComponent(treatmentProvider)}`);
 
       if (!response.ok) {
         throw new Error('Failed to save treatment')
