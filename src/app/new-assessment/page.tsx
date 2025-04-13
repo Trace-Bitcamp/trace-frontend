@@ -11,8 +11,11 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Activity, ArrowLeft, Download, Save } from "lucide-react"
+import { useRouter } from "next/router";
 
 export default function NewAssessment() {
+  const router = useRouter();
+  const { patient } = router.query;
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
@@ -28,7 +31,13 @@ export default function NewAssessment() {
     pressure: 0,
     overall: 0,
   })
-  const [completed, setCompleted] = useState(false)
+  const [completed, setCompleted] = useState(false);
+
+  useEffect(() => {
+    if (patient) {
+      setPatientId(patient as string);
+    }
+  }, [patient]);
 
   useEffect(() => {
     if (canvasRef.current) {

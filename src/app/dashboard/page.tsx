@@ -123,14 +123,14 @@ export default function Home() {
                   <Link href="/new-assessment">
                     <Button className="w-full">New Assessment</Button>
                   </Link>
-                  <Link href="/patients/new">
-                    <Button variant="outline" className="w-full">
-                      Add New Patient
-                    </Button>
-                  </Link>
                   <Link href="/patients">
                     <Button variant="outline" className="w-full">
                       View All Patients
+                    </Button>
+                  </Link>
+                  <Link href="/report">
+                    <Button variant="outline" className="w-full">
+                      Generate Report
                     </Button>
                   </Link>
                 </CardContent>
