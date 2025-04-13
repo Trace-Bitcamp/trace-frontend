@@ -94,7 +94,6 @@ export default function PatientsPage() {
                     <TableHead>Name</TableHead>
                     <TableHead>Age</TableHead>
                     <TableHead>Gender</TableHead>
-                    <TableHead>Diagnosis Date</TableHead>
                     <TableHead>Severity</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -106,7 +105,6 @@ export default function PatientsPage() {
                       <TableCell>{patient.fName + " " + patient.lName}</TableCell>
                       <TableCell>{patient.age}</TableCell>
                       <TableCell>{patient.gender}</TableCell>
-                      <TableCell>{patient.diagnosisDate}</TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
