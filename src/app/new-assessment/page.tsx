@@ -321,10 +321,11 @@ export default function NewAssessment() {
   };
 
   const exportBothCanvases = async () => {
-    if (!canvasRefTemplate.current || !canvasRefDrawings.current) return;
+    if (!canvasRefTemplate.current || !canvasRefDrawings.current || !ctxTemplate) return;
     
     const templateCanvas = canvasRefTemplate.current;
     const drawingsCanvas = canvasRefDrawings.current;
+    ctxTemplate.lineWidth = 5;
     
     const templateImageURL = templateCanvas.toDataURL("image/png");
     const drawingsImageURL = drawingsCanvas.toDataURL("image/png");
