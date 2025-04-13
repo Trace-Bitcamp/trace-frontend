@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Activity, ArrowLeft, Download, Save } from "lucide-react"
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PatientSelector } from "@/components/patient-selector"
 
 interface Patient {
@@ -29,6 +29,8 @@ export default function NewAssessment() {
   const [ctxTemplate, setCtxTemplate] = useState<CanvasRenderingContext2D | null>(null)
   const [ctxDrawings, setCtxDrawings] = useState<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
+  const [lastPoint, setLastPoint] = useState({ x: 0, y: 0 })
+  const [patientName, setPatientName] = useState("")
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [assessmentType, setAssessmentType] = useState("spiral")
   const [points, setPoints] = useState<{ x: number; y: number; time: number }[]>([])
@@ -52,6 +54,7 @@ export default function NewAssessment() {
           if (data.success) {
             const patient = data.data
             setSelectedPatient(patient)
+            setPatientName(`${patient.fName} ${patient.lName}`)
           }
         } catch (error) {
           console.error('Error fetching patient:', error)
@@ -181,7 +184,7 @@ export default function NewAssessment() {
 
     // Get coordinates
     const coords = getCoordinates(e);
-
+    setLastPoint({ x: coords.x, y: coords.y });
 
     // Start new path for template canvas
     ctxDrawings.beginPath();
@@ -207,7 +210,8 @@ export default function NewAssessment() {
     // Record point with timestamp
     setPoints([...points, { x: coords.x, y: coords.y, time: Date.now() }]);
 
-
+    // Update last point
+    setLastPoint({ x: coords.x, y: coords.y });
   }
 
   const stopDrawing = () => {
@@ -405,10 +409,11 @@ export default function NewAssessment() {
 
   useEffect(() => {
     logAssessment()
-  }, [metrics, logAssessment]);
+  }, [metrics]);
 
   const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient)
+    setPatientName(`${patient.fName} ${patient.lName}`)
   }
 
   return (

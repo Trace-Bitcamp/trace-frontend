@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Calendar, Clock, User } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, Send, User } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import {
   Dialog,
@@ -41,18 +41,15 @@ type PatientData = {
     provider: string;
   }>;
   assessment_ids: string[];
-  notes: Array<{
-    date: string;
-    note: string;
-    doctor: string;
-  }>;
+  notes: string[];
 };
 
 export default function PatientProfilePage() {
   const params = useParams()
   const patientId = params.id as string
-  const [patient, setPatient] = useState<PatientData | null>(null)
+  const [patient, setPatient] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [aiMessage, setAiMessage] = useState("")
   const [aiResponse, setAiResponse] = useState("")
   const [aiLoading, setAiLoading] = useState(false)
   const [newNote, setNewNote] = useState("")
@@ -160,24 +157,21 @@ export default function PatientProfilePage() {
         throw new Error(data.error || 'Failed to save treatment')
       }
 
-      // Ensure patient is not null before updating
-      if (patient) {
-        // Add the new treatment to the patient's treatments
-        const updatedTreatments = [
-          {
-            date: treatmentDate,
-            t_desc: treatmentDescription,
-            provider: treatmentProvider
-          },
-          ...patient.medication,
-        ]
+      // Add the new treatment to the patient's treatments
+      const updatedTreatments = [
+        {
+          date: treatmentDate,
+          t_desc: treatmentDescription,
+          provider: treatmentProvider
+        },
+        ...patient.medication,
+      ]
 
-        // Update the patient object
-        setPatient({
-          ...patient,
-          medication: updatedTreatments,
-        })
-      }
+      // Update the patient object
+      setPatient({
+        ...patient,
+        medication: updatedTreatments,
+      })
 
       // Reset form and close dialog
       setTreatmentDate(new Date().toISOString().split("T")[0])
@@ -191,7 +185,25 @@ export default function PatientProfilePage() {
     }
   }
 
-  
+  const handleSendMessage = () => {
+    if (!aiMessage.trim()) return
+
+    setAiLoading(true)
+
+    // Simulate AI response
+    setTimeout(() => {
+      const responses = [
+        `Based on the patient's history with ${aiMessage}, I recommend continuing the current treatment but increasing physical therapy to 3x weekly. Monitor for side effects and reassess in 2 weeks.`,
+        `The patient's response to ${aiMessage} has been suboptimal. Consider adding a dopamine agonist like Pramipexole at a low dose (0.125mg daily) and gradually titrate up while monitoring for side effects.`,
+        `${aiMessage} appears to be working well. Continue the current dosage and add a structured exercise program focusing on balance and coordination. Schedule a follow-up assessment in 1 month.`,
+        `Given the patient's history and current symptoms, ${aiMessage} should be supplemented with occupational therapy. Also consider a sleep study as the patient may have REM sleep behavior disorder affecting overall symptom management.`,
+      ]
+
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)]
+      setAiResponse(randomResponse)
+      setAiLoading(false)
+    }, 1500)
+  }
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return
@@ -439,7 +451,7 @@ export default function PatientProfilePage() {
                   <div className="space-y-6 mt-6">
                     <h3 className="text-lg font-medium">Previous Notes</h3>
                     {patient.notes && patient.notes.length > 0 ? (
-                      patient.notes.map((note, index) => (
+                      patient.notes.map((note: { date: string; note: string; doctor: string }, index: number) => (
                         <div key={index} className="space-y-2 border-b pb-4 last:border-0">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
