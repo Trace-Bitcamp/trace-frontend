@@ -10,10 +10,48 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Calendar, Clock, Send, User } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+
+type PatientData = {
+  id: string;
+  name: string;
+  dob: string;
+  age: number;
+  gender: string;
+  diagnosisDate: string;
+  severity: string;
+  lastAssessment: string;
+  trend: string;
+  contact: {
+    phone: string;
+    email: string;
+    address: string;
+    emergency: string;
+  };
+  treatments: Array<{
+    date: string;
+    treatment: string;
+    provider: string;
+  }>;
+  progressData: Array<{
+    month: string;
+    tremor: number;
+    mobility: number;
+    overall: number;
+  }>;
+};
 
 // Mock patient data
-
-const patientsData: Record<string, any> = {
+const patientsData: Record<string, PatientData> = {
   "P-1001": {
     id: "P-1001",
     name: "Sarah Miller",
@@ -254,6 +292,54 @@ export default function PatientProfilePage() {
   const [aiLoading, setAiLoading] = useState(false)
   const [newNote, setNewNote] = useState("")
   const [doctorNotes, setDoctorNotes] = useState<{ date: string; note: string; doctor: string }[]>([])
+
+  const [isAddTreatmentOpen, setIsAddTreatmentOpen] = useState(false)
+  const [newTreatment, setNewTreatment] = useState({
+    treatment: "",
+    date: new Date().toISOString().split("T")[0],
+    provider: "Dr. Johnson",
+  })
+
+  const handleAddTreatment = () => {
+    if (!newTreatment.treatment.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please enter a treatment description",
+        type: "destructive",
+      })
+      return
+    }
+
+    // Add the new treatment to the patient's treatments
+    const updatedTreatments = [
+      {
+        date: newTreatment.date,
+        treatment: newTreatment.treatment,
+        provider: newTreatment.provider,
+      },
+      ...patient.treatments,
+    ]
+
+    // Update the patient object
+    setPatient({
+      ...patient,
+      treatments: updatedTreatments,
+    })
+
+    // Reset form and close dialog
+    setNewTreatment({
+      treatment: "",
+      date: new Date().toISOString().split("T")[0],
+      provider: "Dr. Johnson",
+    })
+    setIsAddTreatmentOpen(false)
+
+    toast({
+      title: "Treatment added",
+      description: "The new treatment has been added to the patient's record.",
+      type: "success",
+    })
+  }
 
   useEffect(() => {
     // In a real app, this would be an API call
@@ -520,7 +606,7 @@ export default function PatientProfilePage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={() => setIsAddTreatmentOpen(true)}>
                   Add New Treatment
                 </Button>
               </CardFooter>
@@ -641,6 +727,51 @@ export default function PatientProfilePage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Add Treatment Dialog */}
+        <Dialog open={isAddTreatmentOpen} onOpenChange={setIsAddTreatmentOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Add New Treatment</DialogTitle>
+              <DialogDescription>Enter the details of the new treatment for {patient.name}.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="treatment-date">Date</Label>
+                <Input
+                  id="treatment-date"
+                  type="date"
+                  value={newTreatment.date}
+                  onChange={(e) => setNewTreatment({ ...newTreatment, date: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="treatment-description">Treatment Description</Label>
+                <Textarea
+                  id="treatment-description"
+                  placeholder="Enter medication, therapy, or procedure details..."
+                  value={newTreatment.treatment}
+                  onChange={(e) => setNewTreatment({ ...newTreatment, treatment: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="treatment-provider">Provider</Label>
+                <Input
+                  id="treatment-provider"
+                  placeholder="Enter provider name"
+                  value={newTreatment.provider}
+                  onChange={(e) => setNewTreatment({ ...newTreatment, provider: e.target.value })}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddTreatmentOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddTreatment}>Save Treatment</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
