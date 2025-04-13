@@ -64,6 +64,7 @@ export default function NewAssessment() {
 
     fetchPatientById()
   }, [patientId])
+  
 
   useEffect(() => {
     if (canvasRefTemplate.current) {
@@ -355,9 +356,12 @@ export default function NewAssessment() {
     const drawingsImageURL = drawingsCanvas.toDataURL("image/png");
     const age = 70;
     
+    console.log('uploading images to server...');
     // Upload images to the server
     await uploadImagesToServer(drawingsImageURL, templateImageURL, age);
+  };
 
+  const logAssessment = async () => {
     // Save the assessment to the database
     const response = await fetch('http://127.0.0.1:5000/add-assessment',{
       method: 'POST',
@@ -380,7 +384,11 @@ export default function NewAssessment() {
     }
     const result = await response.json();
     console.log('Assessment successfully saved to database:', result);
-  };
+  }
+
+  useEffect(() => {
+    logAssessment()
+  }, [metrics]);
 
   const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient)
