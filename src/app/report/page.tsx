@@ -37,9 +37,18 @@ const fetchGemOut = async (id: string) => {
   return data.response; // Assuming the response is text containing markdown
 }
 
+interface RecentAssessment {
+  assessment_id: string;
+  id: string;
+  fName: string;
+  lName: string;
+  date: string;
+}
+
 export default function ReportPage() {
   const [markdown, setMarkdown] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(true)
+  const [recentAssessments, setRecentAssessments] = useState<RecentAssessment[]>([])
 
   const searchParams = useSearchParams()
   const patientId = searchParams.get('patientId')
@@ -59,7 +68,7 @@ export default function ReportPage() {
     }
 
     loadGeminiOutput()
-  }, [patientId])
+  }, [patientId, recentAssessments])
 
   if (loading) {
     return <div className="container mx-auto py-10">Loading...</div>
