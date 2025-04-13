@@ -29,11 +29,16 @@ console.log("Hello, World!");
 `
 
 const fetchGemOut = async (id: string) => {
-  const response = await fetch(`/gemini_report/${id}`)
+  const response = await fetch(`http://127.0.0.1:5000/gemini_report/${id}`, {
+    method: 'POST', // Ensure the method is POST
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
   if (!response.ok) {
-    throw new Error('Failed to fetch gemini report')
+    throw new Error('Failed to fetch gemini report');
   }
-  return response.text() // Assuming the response is text containing markdown
+  return response.text(); // Assuming the response is text containing markdown
 }
 
 export default function ReportPage() {
