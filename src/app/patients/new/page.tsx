@@ -13,8 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ArrowLeft, Save } from "lucide-react"
-import { toast } from "@/components/ui/use-toast"
-import { patientAPI } from "@/lib/api"
 
 // Define the response type from the API
 interface ApiResponse {
@@ -25,72 +23,72 @@ interface ApiResponse {
 
 export default function NewPatientPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    dob: "",
-    gender: "",
-    email: "",
-    phone: "",
-    address: "",
-    emergencyContact: "",
-    emergencyPhone: "",
-    diagnosisDate: "",
-    severity: "",
-    medicalHistory: "",
-    currentMedications: "",
-  })
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [dob, setDob] = useState("")
+  const [gender, setGender] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [address, setAddress] = useState("")
+  const [emergencyContact, setEmergencyContact] = useState("")
+  const [emergencyPhone, setEmergencyPhone] = useState("")
+  const [diagnosisDate, setDiagnosisDate] = useState("")
+  const [medicalHistory, setMedicalHistory] = useState("")
+  const [currentMedications, setCurrentMedications] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Validate form
-    if (!formData.firstName || !formData.lastName || !formData.dob || !formData.gender) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
-        type: "destructive",
-      })
+    if (!firstName || !lastName || !dob || !gender) {
       return
     }
 
     setIsSubmitting(true)
     
     try {
-      // Call the Flask backend API
-      const response = await patientAPI.addPatient(formData) as ApiResponse
+      const bodyJSON = JSON.stringify({
+        fName: firstName,
+        lName: lastName,
+        bDate: dob,
+        gender: gender,
+        email: email,
+        phoneNum: phone,
+        address: address,
+        contactName: emergencyContact,
+        contactNum: emergencyPhone,
+        diagnosis: diagnosisDate,
+        severity: 0,
+        medHist: medicalHistory,
+        medication: currentMedications
+      })
       
-      if (response.success) {
-        toast({
-          title: "Patient added",
-          description: `${formData.firstName} ${formData.lastName} has been added successfully.`,
-          type: "success",
-        })
+      console.log(bodyJSON)
 
-        // Navigate back to patients list after a short delay
+      const response = await fetch('http://127.0.0.1:5000/add_patient', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: bodyJSON
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add patient')
+      }
+
+      const result = await response.json()
+
+      if (result.success) {
         setTimeout(() => {
           router.push("/patients")
         }, 1500)
       } else {
-        throw new Error(response.error || "Failed to add patient")
+        throw new Error(result.error || "Failed to add patient")
       }
     } catch (error) {
       console.error('Error creating patient:', error)
-      toast({
-        title: "Error",
-        description: "Failed to create patient. Please try again.",
-        type: "destructive",
-      })
     } finally {
       setIsSubmitting(false)
     }
@@ -125,8 +123,8 @@ export default function NewPatientPage() {
                       id="firstName"
                       name="firstName"
                       placeholder="Enter first name"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                       required
                     />
                   </div>
@@ -138,8 +136,8 @@ export default function NewPatientPage() {
                       id="lastName"
                       name="lastName"
                       placeholder="Enter last name"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                       required
                     />
                   </div>
@@ -147,13 +145,20 @@ export default function NewPatientPage() {
                     <Label htmlFor="dob">
                       Date of Birth <span className="text-red-500">*</span>
                     </Label>
-                    <Input id="dob" name="dob" type="date" value={formData.dob} onChange={handleInputChange} required />
+                    <Input
+                      id="dob"
+                      name="dob"
+                      type="date"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="gender">
                       Gender <span className="text-red-500">*</span>
                     </Label>
-                    <Select value={formData.gender} onValueChange={(value) => handleSelectChange("gender", value)}>
+                    <Select value={gender} onValueChange={setGender}>
                       <SelectTrigger id="gender">
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
@@ -182,8 +187,8 @@ export default function NewPatientPage() {
                       name="email"
                       type="email"
                       placeholder="Enter email address"
-                      value={formData.email}
-                      onChange={handleInputChange}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -192,8 +197,8 @@ export default function NewPatientPage() {
                       id="phone"
                       name="phone"
                       placeholder="Enter phone number"
-                      value={formData.phone}
-                      onChange={handleInputChange}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2 sm:col-span-2">
@@ -202,8 +207,8 @@ export default function NewPatientPage() {
                       id="address"
                       name="address"
                       placeholder="Enter address"
-                      value={formData.address}
-                      onChange={handleInputChange}
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -212,8 +217,8 @@ export default function NewPatientPage() {
                       id="emergencyContact"
                       name="emergencyContact"
                       placeholder="Enter emergency contact name"
-                      value={formData.emergencyContact}
-                      onChange={handleInputChange}
+                      value={emergencyContact}
+                      onChange={(e) => setEmergencyContact(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -222,8 +227,8 @@ export default function NewPatientPage() {
                       id="emergencyPhone"
                       name="emergencyPhone"
                       placeholder="Enter emergency contact phone"
-                      value={formData.emergencyPhone}
-                      onChange={handleInputChange}
+                      value={emergencyPhone}
+                      onChange={(e) => setEmergencyPhone(e.target.value)}
                     />
                   </div>
                 </div>
@@ -243,36 +248,9 @@ export default function NewPatientPage() {
                       id="diagnosisDate"
                       name="diagnosisDate"
                       type="date"
-                      value={formData.diagnosisDate}
-                      onChange={handleInputChange}
+                      value={diagnosisDate}
+                      onChange={(e) => setDiagnosisDate(e.target.value)}
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="severity">Severity</Label>
-                    <RadioGroup
-                      value={formData.severity}
-                      onValueChange={(value) => handleSelectChange("severity", value)}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="mild" id="mild" />
-                        <Label htmlFor="mild" className="text-emerald-600">
-                          Mild
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="moderate" id="moderate" />
-                        <Label htmlFor="moderate" className="text-amber-600">
-                          Moderate
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="severe" id="severe" />
-                        <Label htmlFor="severe" className="text-red-600">
-                          Severe
-                        </Label>
-                      </div>
-                    </RadioGroup>
                   </div>
                   <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="medicalHistory">Medical History</Label>
@@ -280,8 +258,8 @@ export default function NewPatientPage() {
                       id="medicalHistory"
                       name="medicalHistory"
                       placeholder="Enter relevant medical history"
-                      value={formData.medicalHistory}
-                      onChange={handleInputChange}
+                      value={medicalHistory}
+                      onChange={(e) => setMedicalHistory(e.target.value)}
                       className="min-h-[100px]"
                     />
                   </div>
@@ -291,8 +269,8 @@ export default function NewPatientPage() {
                       id="currentMedications"
                       name="currentMedications"
                       placeholder="Enter current medications and dosages"
-                      value={formData.currentMedications}
-                      onChange={handleInputChange}
+                      value={currentMedications}
+                      onChange={(e) => setCurrentMedications(e.target.value)}
                       className="min-h-[100px]"
                     />
                   </div>

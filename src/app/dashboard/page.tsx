@@ -48,12 +48,11 @@ export default function Home() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Assessments</CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
                   <ClipboardList className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">7</div>
-                  <p className="text-xs text-muted-foreground">5 scheduled today</p>
                 </CardContent>
               </Card>
               <Card>
@@ -123,14 +122,14 @@ export default function Home() {
                   <Link href="/new-assessment">
                     <Button className="w-full">New Assessment</Button>
                   </Link>
-                  <Link href="/patients">
+                  <Link href="/patients/new">
                     <Button variant="outline" className="w-full">
-                      View All Patients
+                      Add New Patient
                     </Button>
                   </Link>
-                  <Link href="/report">
+                  <Link href="/patients">
                     <Button variant="outline" className="w-full">
-                      Generate Report
+                    View All Patients
                     </Button>
                   </Link>
                 </CardContent>
