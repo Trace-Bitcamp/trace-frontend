@@ -14,6 +14,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ArrowLeft, Save } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
+import { patientAPI } from "@/lib/api"
+
+// Define the response type from the API
+interface ApiResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+}
 
 export default function NewPatientPage() {
   const router = useRouter()
@@ -32,6 +40,7 @@ export default function NewPatientPage() {
     medicalHistory: "",
     currentMedications: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -42,7 +51,7 @@ export default function NewPatientPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Validate form
@@ -55,17 +64,36 @@ export default function NewPatientPage() {
       return
     }
 
-    // In a real app, this would save to a database
-    toast({
-      title: "Patient added",
-      description: `${formData.firstName} ${formData.lastName} has been added successfully.`,
-      type: "success",
-    })
+    setIsSubmitting(true)
+    
+    try {
+      // Call the Flask backend API
+      const response = await patientAPI.addPatient(formData) as ApiResponse
+      
+      if (response.success) {
+        toast({
+          title: "Patient added",
+          description: `${formData.firstName} ${formData.lastName} has been added successfully.`,
+          type: "success",
+        })
 
-    // Navigate back to patients list after a short delay
-    setTimeout(() => {
-      router.push("/patients")
-    }, 1500)
+        // Navigate back to patients list after a short delay
+        setTimeout(() => {
+          router.push("/patients")
+        }, 1500)
+      } else {
+        throw new Error(response.error || "Failed to add patient")
+      }
+    } catch (error) {
+      console.error('Error creating patient:', error)
+      toast({
+        title: "Error",
+        description: "Failed to create patient. Please try again.",
+        type: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -274,9 +302,9 @@ export default function NewPatientPage() {
                 <Button variant="outline" type="button" onClick={() => router.push("/patients")}>
                   Cancel
                 </Button>
-                <Button type="submit" className="gap-2">
+                <Button type="submit" className="gap-2" disabled={isSubmitting}>
                   <Save className="h-4 w-4" />
-                  Save Patient
+                  {isSubmitting ? "Saving..." : "Save Patient"}
                 </Button>
               </CardFooter>
             </Card>

@@ -108,9 +108,6 @@ export default function Home() {
                           >
                             {patient.change}
                           </div>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
                         </div>
                       </div>
                     ))}
@@ -123,7 +120,7 @@ export default function Home() {
                   <CardDescription>Common tasks and shortcuts</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
-                  <Link href="/new_assessment">
+                  <Link href="/new-assessment">
                     <Button className="w-full">New Assessment</Button>
                   </Link>
                   <Link href="/patients/new">
@@ -131,14 +128,9 @@ export default function Home() {
                       Add New Patient
                     </Button>
                   </Link>
-                  <Link href="/analytics/reports">
+                  <Link href="/patients">
                     <Button variant="outline" className="w-full">
-                      Generate Report
-                    </Button>
-                  </Link>
-                  <Link href="/analytics/trends">
-                    <Button variant="outline" className="w-full">
-                      View Treatment Trends
+                      View All Patients
                     </Button>
                   </Link>
                 </CardContent>
