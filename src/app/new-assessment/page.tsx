@@ -25,13 +25,12 @@ export default function NewAssessment() {
   const [assessmentType, setAssessmentType] = useState("spiral")
   const [points, setPoints] = useState<{ x: number; y: number; time: number }[]>([])
   const [metrics, setMetrics] = useState({
+    severity: 0,
     tremor: 0,
     deviation: 0,
-    speed: 0,
-    pressure: 0,
-    overall: 0,
   })
   const [completed, setCompleted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (canvasRefTemplate.current) {
@@ -72,8 +71,6 @@ export default function NewAssessment() {
   }, [canvasRefTemplate, canvasRefDrawings, assessmentType])
 
   const drawTemplate = (context: CanvasRenderingContext2D, type: string, width: number, height: number) => {
-    context.clearRect(0, 0, width, height)
-
     if (type === "spiral") {
       // Draw spiral template
       const centerX = width / 2
@@ -144,10 +141,6 @@ export default function NewAssessment() {
       context.lineTo(width - 50, height / 2)
       context.stroke()
     }
-
-    // Reset stroke style for user drawing
-    context.strokeStyle = "#000000"
-    context.lineWidth = 2
   }
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
@@ -215,70 +208,29 @@ export default function NewAssessment() {
   }
 
   const calculateMetrics = () => {
-    exportBothCanvases();
-    // This is a simplified example of metrics calculation
-    // In a real application, these would be more sophisticated algorithms
-
-    // Calculate tremor (variation in adjacent points)
-    let tremorSum = 0
-    for (let i = 2; i < points.length; i++) {
-      const p1 = points[i - 2]
-      const p2 = points[i - 1]
-      const p3 = points[i]
-
-      // Calculate angle changes as a measure of tremor
-      const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x)
-      const angle2 = Math.atan2(p3.y - p2.y, p3.x - p2.x)
-      const angleDiff = Math.abs(angle2 - angle1)
-
-      tremorSum += angleDiff
-    }
-    const tremorScore = Math.min(100, (tremorSum / points.length) * 100)
-
-    // Calculate speed (time taken to complete)
-    const timeElapsed = points[points.length - 1].time - points[0].time
-    const speedScore = Math.min(100, (5000 / timeElapsed) * 100)
-
-    // Calculate deviation (from template - simplified)
-    const deviationScore = Math.random() * 40 + 30 // Placeholder
-
-    // Calculate pressure (placeholder - would use pressure API in real app)
-    const pressureScore = Math.random() * 40 + 30 // Placeholder
-
-    // Overall score (weighted average)
-    const overall = tremorScore * 0.4 + deviationScore * 0.3 + speedScore * 0.2 + pressureScore * 0.1
-
-    setMetrics({
-      tremor: Math.round(tremorScore),
-      deviation: Math.round(deviationScore),
-      speed: Math.round(speedScore),
-      pressure: Math.round(pressureScore),
-      overall: Math.round(overall),
-    })
-
+    setLoading(true);
+    submitCanvases();
+    
     setCompleted(true)
   }
 
   const resetCanvas = () => {
     if (!ctxTemplate || !ctxDrawings || !canvasRefTemplate.current || !canvasRefDrawings.current) return;
+    
+    // Clear the drawings canvas
+    ctxDrawings.clearRect(0, 0, canvasRefDrawings.current.width, canvasRefDrawings.current.height);
 
     // Clear the template canvas
     ctxTemplate.clearRect(0, 0, canvasRefTemplate.current.width, canvasRefTemplate.current.height);
     drawTemplate(ctxTemplate, assessmentType, canvasRefTemplate.current.width, canvasRefTemplate.current.height);
 
-    // Clear the drawings canvas
-    ctxDrawings.clearRect(0, 0, canvasRefDrawings.current.width, canvasRefDrawings.current.height);
-
-
     // Reset points and metrics
     setPoints([]);
     setCompleted(false);
     setMetrics({
-        tremor: 0,
-        deviation: 0,
-        speed: 0,
-        pressure: 0,
-        overall: 0,
+      severity: 0,
+      tremor: 0,
+      deviation: 0
     });
   }
 
@@ -288,14 +240,37 @@ export default function NewAssessment() {
   }
 
   const getSeverityLabel = (score: number) => {
-    if (score < 30) return "Mild"
-    if (score < 60) return "Moderate"
+    if (score < 0.3) return "Mild"
+    if (score < 0.65) return "Moderate"
     return "Severe"
   }
 
   const getSeverityColor = (score: number) => {
-    if (score < 30) return "text-emerald-500"
+    if (score < 0.3) return "text-emerald-500"
+    if (score < 0.65) return "text-amber-500"
+    return "text-red-500"
+  }
+
+  const getTremorLabel = (score: number) => {
+    if (score < 20) return "Minimal"
+    if (score < 60) return "Moderate"
+    return "Severe"
+  }
+
+  const getTremorColor = (score: number) => {
+    if (score < 20) return "text-emerald-500"
     if (score < 60) return "text-amber-500"
+    return "text-red-500"
+  }
+
+  const getDeviationLabel = (score: number) => {
+    if (score < 15) return "Minimal"
+    if (score < 30) return "Moderate"
+    return "Severe"
+  }
+  const getDeviationColor = (score: number) => {
+    if (score < 15) return "text-emerald-500"
+    if (score < 30) return "text-amber-500"
     return "text-red-500"
   }
 
@@ -316,9 +291,18 @@ export default function NewAssessment() {
 
     const result = await response.json();
     console.log('Assessment successfully submitted:', result);
+
+    // set the metrics
+    const data = result.data;
+    setLoading(false);
+    setMetrics({
+      severity: parseFloat(data.severity_score),
+      tremor: parseFloat(data.mean_tremor),
+      deviation: parseFloat(data.dtw_distance),
+    });
   };
 
-  const exportBothCanvases = async () => {
+  const submitCanvases = async () => {
     if (!canvasRefTemplate.current || !canvasRefDrawings.current || !ctxTemplate) return;
     
     const templateCanvas = canvasRefTemplate.current;
@@ -463,10 +447,10 @@ export default function NewAssessment() {
                         <CardTitle className="text-sm font-medium">Overall Severity</CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className={`text-2xl font-bold ${getSeverityColor(metrics.overall)}`}>
-                          {getSeverityLabel(metrics.overall)}
+                        <div className={`text-2xl font-bold ${loading ? 'text-black' : getSeverityColor(metrics.severity)}`}>
+                          {loading ? 'Loading...' : getSeverityLabel(metrics.severity)}
                         </div>
-                        <p className="text-xs text-muted-foreground">{metrics.overall}/100</p>
+                        <p className="text-xs text-muted-foreground">{loading ? '' : metrics.severity}</p>
                       </CardContent>
                     </Card>
                     <Card>
@@ -474,10 +458,10 @@ export default function NewAssessment() {
                         <CardTitle className="text-sm font-medium">Tremor</CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className={`text-2xl font-bold ${getSeverityColor(metrics.tremor)}`}>
-                          {getSeverityLabel(metrics.tremor)}
+                        <div className={`text-2xl font-bold ${loading ? 'text-black' : getTremorColor(metrics.tremor)}`}>
+                          {loading ? 'Loading...' : getTremorLabel(metrics.tremor)}
                         </div>
-                        <p className="text-xs text-muted-foreground">{metrics.tremor}/100</p>
+                        <p className="text-xs text-muted-foreground">{loading ? '' : metrics.tremor}</p>
                       </CardContent>
                     </Card>
                     <Card>
@@ -485,32 +469,10 @@ export default function NewAssessment() {
                         <CardTitle className="text-sm font-medium">Deviation</CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className={`text-2xl font-bold ${getSeverityColor(metrics.deviation)}`}>
-                          {getSeverityLabel(metrics.deviation)}
+                        <div className={`text-2xl font-bold ${loading ? 'text-black' : getDeviationColor(metrics.deviation)}`}>
+                          {loading ? 'Loading...' : getDeviationLabel(metrics.deviation)}
                         </div>
-                        <p className="text-xs text-muted-foreground">{metrics.deviation}/100</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader className="p-4 pb-2">
-                        <CardTitle className="text-sm font-medium">Speed</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-0">
-                        <div className={`text-2xl font-bold ${getSeverityColor(metrics.speed)}`}>
-                          {getSeverityLabel(metrics.speed)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{metrics.speed}/100</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader className="p-4 pb-2">
-                        <CardTitle className="text-sm font-medium">Pressure</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-0">
-                        <div className={`text-2xl font-bold ${getSeverityColor(metrics.pressure)}`}>
-                          {getSeverityLabel(metrics.pressure)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{metrics.pressure}/100</p>
+                        <p className="text-xs text-muted-foreground">{loading ? '' : metrics.deviation}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -521,7 +483,7 @@ export default function NewAssessment() {
                       <h3 className="mb-4 text-lg font-semibold">Clinical Interpretation</h3>
                       <p className="mb-4">
                         Based on the assessment results, the patient shows{" "}
-                        {getSeverityLabel(metrics.overall).toLowerCase()}
+                        {getSeverityLabel(metrics.severity).toLowerCase()}
                         symptoms of Parkinson's disease. The primary indicators are:
                       </p>
                       <ul className="mb-4 list-disc pl-6 space-y-2">
@@ -541,20 +503,12 @@ export default function NewAssessment() {
                               ? "Moderate difficulty maintaining precision in tracing."
                               : "Significant deviation from the template pattern."}
                         </li>
-                        <li>
-                          <span className="font-medium">Movement Speed: </span>
-                          {metrics.speed < 30
-                            ? "Normal movement speed with good control."
-                            : metrics.speed < 60
-                              ? "Some bradykinesia (slowness of movement) observed."
-                              : "Marked bradykinesia affecting task completion time."}
-                        </li>
                       </ul>
                       <h3 className="mb-4 text-lg font-semibold">Treatment Recommendations</h3>
                       <p>
-                        {metrics.overall < 30
+                        {metrics.severity < 30
                           ? "Continue current treatment regimen with regular monitoring. Consider physical therapy to maintain motor function."
-                          : metrics.overall < 60
+                          : metrics.severity < 60
                             ? "Evaluate current medication dosage and timing. Consider adding physical and occupational therapy to the treatment plan."
                             : "Urgent medication adjustment recommended. Consider referral to movement disorder specialist for advanced treatment options including deep brain stimulation evaluation."}
                       </p>
